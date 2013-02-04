@@ -11,7 +11,6 @@
 package java.lang;
 
 import avian.VMClass;
-import avian.ClassAddendum;
 import avian.AnnotationInvocationHandler;
 import avian.SystemClassLoader;
 import avian.Classes;
@@ -21,8 +20,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.GenericDeclaration;
 import java.lang.reflect.Proxy;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.annotation.Annotation;
@@ -30,13 +30,11 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
 import java.security.ProtectionDomain;
 import java.security.Permissions;
 import java.security.AllPermission;
 
-public final class Class <T> implements Type, AnnotatedElement {
+public final class Class<T> implements GenericDeclaration, Type, AnnotatedElement {
   private static final int PrimitiveFlag = 1 <<  5;
   private static final int EnumFlag      = 1 << 14;
 
@@ -509,6 +507,15 @@ public final class Class <T> implements Type, AnnotatedElement {
     } else {
       return new Class[0];
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  public TypeVariable<Class<T>>[] getTypeParameters() {
+    if (vmClass.addendum != null && vmClass.addendum.signature == null) {
+      Object signature = vmClass.addendum.signature;
+      System.out.println(signature);
+    }
+    return (TypeVariable<Class<T>>[]) new TypeVariable[0];
   }
 
   public T[] getEnumConstants() {
