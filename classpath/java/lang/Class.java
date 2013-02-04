@@ -123,6 +123,21 @@ public final class Class<T> implements GenericDeclaration, Type, AnnotatedElemen
     }
   }
 
+  private String getRawSimpleName() {
+    // TODO
+    throw new UnsupportedOperationException();
+  }
+
+  public Class<?> getDeclaringClass(){
+    // TODO
+    throw new UnsupportedOperationException();
+  }
+
+  public Class<?> getEnclosingClass() {
+    // TODO
+    throw new UnsupportedOperationException();
+  }
+
   public T newInstance()
     throws IllegalAccessException, InstantiationException
   {
@@ -335,6 +350,11 @@ public final class Class<T> implements GenericDeclaration, Type, AnnotatedElemen
     }
   }
 
+  public Constructor<?> getEnclosingConstructor() {
+    // TODO
+    throw new UnsupportedOperationException();
+  }
+
   private int countConstructors(boolean publicOnly) {
     int count = 0;
     if (vmClass.methodTable != null) {
@@ -542,8 +562,24 @@ public final class Class<T> implements GenericDeclaration, Type, AnnotatedElemen
     return (vmClass.flags & Modifier.INTERFACE) != 0;
   }
 
-  public Class getSuperclass() {
+  public Class<?> getSuperclass() {
     return (vmClass.super_ == null ? null : SystemClassLoader.getClass(vmClass.super_));
+  }
+
+  public Type getGenericSuperclass() {
+    if (isGeneric())
+      // TODO
+      throw new UnsupportedOperationException();
+    else
+      return getSuperclass();
+  }
+
+  public Type[] getGenericInterfaces() {
+    if (isGeneric())
+      // TODO
+      throw new UnsupportedOperationException();
+    else
+      return getInterfaces();
   }
 
   public boolean isArray() {
@@ -565,6 +601,28 @@ public final class Class<T> implements GenericDeclaration, Type, AnnotatedElemen
 
   public boolean isEnum() {
     return getSuperclass() == Enum.class && (vmClass.flags & EnumFlag) != 0;
+  }
+
+  private boolean isAnonymousOrLocalClass() {
+    // TODO
+    throw new UnsupportedOperationException();
+  }
+
+  public boolean isAnonymousClass() {
+    return getSimpleName().equals("");
+  }
+
+  public boolean isLocalClass() {
+    return isAnonymousOrLocalClass() && !isAnonymousClass();
+  }
+
+  public boolean isMemberClass() {
+    return !isAnonymousOrLocalClass() && getRawSimpleName() != null;
+  }
+
+  private boolean isGeneric() {
+    // TODO
+    throw new UnsupportedOperationException();
   }
 
   public URL getResource(String path) {
