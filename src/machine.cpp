@@ -2415,12 +2415,25 @@ makeArrayClass(Thread* t, object loader, unsigned dimensions, object spec,
 
   object vtable = classVirtualTable(t, type(t, Machine::JobjectType));
 
+  PROTECT(t, elementClass);
+  uint8_t elementSize;
+
+  object& name = className(t, elementClass);
+  const char* body = reinterpret_cast<const char*>(&byteArrayBody(t, name, 0));
+
+  if (!vm::isValueClass(t, elementClass))
+      elementSize = BytesPerWord;
+  else {
+      elementSize = classFixedSize(t, elementClass) - BytesPerWord;
+      fprintf(stderr, "DEBUG: class %s has elementSize %d\n", body, elementSize);
+  }
+
   object c = t->m->processor->makeClass
     (t,
      0,
      0,
      2 * BytesPerWord,
-     BytesPerWord,
+     elementSize,
      dimensions,
      classObjectMask(t, type(t, Machine::ArrayType)),
      spec,

@@ -150,6 +150,12 @@ class HashMapIterator: public Thread::Protector {
   unsigned index;
 };
 
+inline bool
+endsWith(const char* a, const char* b);
+
+bool
+isValueClass(Thread* t, object class_);
+
 } // vm
 
 #endif//UTIL_H

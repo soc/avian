@@ -592,4 +592,25 @@ treeUpdate(Thread* t, object tree, intptr_t key, object value, object sentinal,
   setTreeNodeValue(t, treeFind(t, tree, key, sentinal, compare), value);
 }
 
+inline bool
+endsWith(const char* a, const char* b)
+{
+  unsigned al = strlen(a);
+  unsigned bl = strlen(b);
+  return (bl >= al) and strncmp(a, b + (bl - al), al) == 0;
+}
+
+bool
+isValueClass(Thread* t, object class_)
+{
+  object& name = className(t, class_);
+  uint16_t& classSize = classFixedSize(t, class_);
+  const char* body = reinterpret_cast<const char*>(&byteArrayBody(t, name, 0));
+  if (!endsWith("ValueClass", body)) {
+    return false;
+  } else
+    fprintf(stderr, "DEBUG: classFixedSize %d for class %s\n", classSize, body);
+    return true;
+}
+
 } // namespace vm

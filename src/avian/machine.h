@@ -148,18 +148,20 @@ const int NativeLine = -2;
 const int UnknownLine = -1;
 
 // class vmFlags:
-const unsigned ReferenceFlag = 1 << 0;
-const unsigned WeakReferenceFlag = 1 << 1;
-const unsigned NeedInitFlag = 1 << 2;
-const unsigned InitFlag = 1 << 3;
-const unsigned InitErrorFlag = 1 << 4;
-const unsigned PrimitiveFlag = 1 << 5;
-const unsigned BootstrapFlag = 1 << 6;
-const unsigned HasFinalizerFlag = 1 << 7;
-const unsigned LinkFlag = 1 << 8;
-const unsigned HasFinalMemberFlag = 1 << 9;
-const unsigned SingletonFlag = 1 << 10;
-const unsigned ContinuationFlag = 1 << 11;
+const unsigned ReferenceFlag      = 1 <<  0;
+const unsigned WeakReferenceFlag  = 1 <<  1;
+const unsigned NeedInitFlag       = 1 <<  2;
+const unsigned InitFlag           = 1 <<  3;
+const unsigned InitErrorFlag      = 1 <<  4;
+const unsigned PrimitiveFlag      = 1 <<  5;
+const unsigned BootstrapFlag      = 1 <<  6;
+const unsigned HasFinalizerFlag   = 1 <<  7;
+const unsigned LinkFlag           = 1 <<  8;
+const unsigned HasFinalMemberFlag = 1 <<  9;
+const unsigned SingletonFlag      = 1 << 10;
+const unsigned ContinuationFlag   = 1 << 11;
+const unsigned ValueTypeFlag      = 1 << 12;
+const unsigned SpecializedFlag    = 1 << 13;
 
 // method vmFlags:
 const unsigned ClassInitFlag = 1 << 0;

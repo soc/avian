@@ -2869,6 +2869,50 @@ makeBlankArray(MyThread* t, unsigned type, int32_t length)
   }
 }
 
+void
+setMaybeNull(MyThread* t, object o, unsigned offset, object value)
+{
+  if (LIKELY(o)) {
+    set(t, o, offset, value);
+  } else {
+    throwNew(t, Machine::NullPointerExceptionType);
+  }
+}
+
+uint64_t
+arrayLoad(MyThread* t, object array, int32_t index) {
+  // classStaticTable is actually the element type for array classes:
+  object arrayClass = objectClass(t, array);
+  object elementType = classStaticTable(t, arrayClass);
+  if (isValueClass(t, elementType)) {
+    unsigned size = classArrayElementSize(t, arrayClass);
+    PROTECT(t, array);
+    object box = makeNew(t, elementType);
+    memcpy(reinterpret_cast<uint8_t*>(&box) + BytesPerWord,
+           reinterpret_cast<uint8_t*>(array) + ArrayBody + (index * size),
+           size);
+    return reinterpret_cast<uint64_t>(box);
+  } else {
+    return reinterpret_cast<uint64_t>(objectArrayBody(t, array, index));
+  }
+}
+
+void
+arrayStore(MyThread* t, object array, int32_t index, object value) {
+  // classStaticTable is actually the element type for array classes:
+  object arrayClass = objectClass(t, array);
+  object elementType = classStaticTable(t, arrayClass);
+  if (isValueClass(t, elementType)) {
+    unsigned size = classArrayElementSize(t, arrayClass);
+    PROTECT(t, array);
+    memcpy(reinterpret_cast<uint8_t*>(array) + ArrayBody + (index * size),
+           reinterpret_cast<uint8_t*>(&value) + BytesPerWord,
+           size);
+  } else {
+    setMaybeNull(t, array, index, value);
+  }
+}
+
 uint64_t
 lookUpAddress(int32_t key, uintptr_t* start, int32_t count,
               uintptr_t default_)
@@ -2890,16 +2934,6 @@ lookUpAddress(int32_t key, uintptr_t* start, int32_t count,
   }
 
   return default_;
-}
-
-void
-setMaybeNull(MyThread* t, object o, unsigned offset, object value)
-{
-  if (LIKELY(o)) {
-    set(t, o, offset, value);
-  } else {
-    throwNew(t, Machine::NullPointerExceptionType);
-  }
 }
 
 void
@@ -4231,11 +4265,11 @@ compile(MyThread* t, Frame* initialFrame, unsigned initialIp,
       switch (instruction) {
       case aaload:
         frame->pushObject
-          (c->load
-           (TargetBytesPerWord, TargetBytesPerWord, c->memory
-            (array, Compiler::ObjectType, TargetArrayBody, index,
-             TargetBytesPerWord),
-            TargetBytesPerWord));
+          (c->call
+           (c->constant
+            (getThunk(t, arrayLoadThunk), Compiler::AddressType),
+            0, frame->trace(0, 0), TargetBytesPerWord,
+            Compiler::ObjectType, 3, c->register_(t->arch->thread()), array, index));
         break;
 
       case faload:
@@ -4326,12 +4360,9 @@ compile(MyThread* t, Frame* initialFrame, unsigned initialIp,
       switch (instruction) {
       case aastore: {
         c->call
-          (c->constant(getThunk(t, setMaybeNullThunk), Compiler::AddressType),
-           0,
-           frame->trace(0, 0),
-           0,
-           Compiler::VoidType,
-           4, c->register_(t->arch->thread()), array,
+          (c->constant(getThunk(t, arrayStoreThunk), Compiler::AddressType),
+           0, frame->trace(0, 0), 0,
+           Compiler::VoidType, 4, c->register_(t->arch->thread()), array,
            c->add
            (4, c->constant(TargetArrayBody, Compiler::IntegerType),
             c->shl
