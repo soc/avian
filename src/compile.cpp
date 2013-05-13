@@ -3035,7 +3035,7 @@ checkCast(MyThread* t, object class_, object o)
 {
   if (UNLIKELY(o and not isAssignableFrom(t, class_, objectClass(t, o)))) {
     throwNew
-      (t, Machine::ClassCastExceptionType, "%s as %s",
+      (t, Machine::ClassCastExceptionType, "%s cannot be cast to %s",
        &byteArrayBody(t, className(t, objectClass(t, o)), 0),
        &byteArrayBody(t, className(t, class_), 0));
   }
