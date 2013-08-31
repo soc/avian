@@ -160,6 +160,7 @@ const unsigned LinkFlag = 1 << 8;
 const unsigned HasFinalMemberFlag = 1 << 9;
 const unsigned SingletonFlag = 1 << 10;
 const unsigned ContinuationFlag = 1 << 11;
+const unsigned ValueTypeFlag = 1 << 12;
 
 // method vmFlags:
 const unsigned ClassInitFlag = 1 << 0;

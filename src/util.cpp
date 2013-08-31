@@ -600,4 +600,15 @@ treeUpdate(Thread* t, object tree, intptr_t key, object value, object sentinal,
   setTreeNodeValue(t, treeFind(t, tree, key, sentinal, compare), value);
 }
 
+bool
+isValueType(Thread* t, object class_)
+{
+//  object& name = className(t, class_);
+//  uint16_t& classSize = classFixedSize(t, class_);
+//  int8_t* body = &byteArrayBody(t, name, 0);
+  if (classVmFlags(t, class_) & ValueTypeFlag) {
+    return true;
+  } else
+    return false;
+}
 } // namespace vm

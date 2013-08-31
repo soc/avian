@@ -178,6 +178,8 @@
   (uintptr_t framePointerOffset)
   (array uintptr_t body))
 
+(type valueType avian/ValueType)
+
 (type unwindResult avian/Continuations$UnwindResult)
 
 (type callbackReceiver avian/CallbackReceiver)

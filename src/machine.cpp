@@ -2450,12 +2450,25 @@ makeArrayClass(Thread* t, object loader, unsigned dimensions, object spec,
 
   object vtable = classVirtualTable(t, type(t, Machine::JobjectType));
 
+  PROTECT(t, elementClass);
+  uint8_t elementSize;
+
+  object& name = className(t, elementClass);
+  int8_t* body = &byteArrayBody(t, name, 0);
+
+  if (!isValueType(t, elementClass))
+      elementSize = BytesPerWord;
+  else {
+      elementSize = classFixedSize(t, elementClass) - BytesPerWord;
+      fprintf(stderr, "DEBUG: class %s has elementSize %d\n", body, elementSize);
+  }
+
   object c = t->m->processor->makeClass
     (t,
      0,
      0,
      2 * BytesPerWord,
-     BytesPerWord,
+     elementSize,
      dimensions,
      classObjectMask(t, type(t, Machine::ArrayType)),
      spec,
@@ -2748,6 +2761,9 @@ boot(Thread* t)
 
   classVmFlags(t, type(t, Machine::ContinuationType))
     |= ContinuationFlag;
+
+  classVmFlags(t, type(t, Machine::ValueTypeType))
+    |= ValueTypeFlag;
 
   classVmFlags(t, type(t, Machine::JreferenceType))
     |= ReferenceFlag;
@@ -4136,13 +4152,13 @@ parseClass(Thread* t, object loader, const uint8_t* data, unsigned size,
     classVmFlags(t, class_)
       |= (classVmFlags(t, sc)
           & (ReferenceFlag | WeakReferenceFlag | HasFinalizerFlag
-             | NeedInitFlag));
+             | NeedInitFlag | ValueTypeFlag));
   }
 
   if(DebugClassReader) {
-    fprintf(stderr, "  flags %d name %d super %d\n", flags, name, super);
+    fprintf(stdout, "  flags %d name %d super %d\n", flags, name, super);
   }
-  
+
   parseInterfaceTable(t, s, class_, pool, throwType);
 
   parseFieldTable(t, s, class_, pool);
@@ -4188,6 +4204,12 @@ parseClass(Thread* t, object loader, const uint8_t* data, unsigned size,
     hashMapInsert
       (t, root(t, Machine::PoolMap), bootstrapClass ? bootstrapClass : real,
        pool, objectHash);
+  }
+
+  if (isValueType(t, real)) {
+    int8_t* name = &byteArrayBody(t, className(t, real), 0);
+    uint16_t& classSize = classFixedSize(t, class_);
+    fprintf(stderr, "Class %s is a ValueType with boxed size of %d bytes!\n", name, classSize);
   }
 
   return real;

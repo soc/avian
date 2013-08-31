@@ -100,6 +100,9 @@ void
 treeUpdate(Thread* t, object tree, intptr_t key, object value, object sentinal,
            intptr_t (*compare)(Thread* t, intptr_t key, object b));
 
+bool
+isValueType(Thread* t, object class_);
+
 class HashMapIterator: public Thread::Protector {
  public:
   HashMapIterator(Thread* t, object map):
