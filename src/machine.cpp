@@ -2451,24 +2451,13 @@ makeArrayClass(Thread* t, object loader, unsigned dimensions, object spec,
   object vtable = classVirtualTable(t, type(t, Machine::JobjectType));
 
   PROTECT(t, elementClass);
-  uint8_t elementSize;
-
-  object& name = className(t, elementClass);
-  int8_t* body = &byteArrayBody(t, name, 0);
-
-  if (!isValueType(t, elementClass))
-      elementSize = BytesPerWord;
-  else {
-      elementSize = classFixedSize(t, elementClass) - BytesPerWord;
-      fprintf(stderr, "DEBUG: class %s has elementSize %d\n", body, elementSize);
-  }
 
   object c = t->m->processor->makeClass
     (t,
      0,
      0,
      2 * BytesPerWord,
-     elementSize,
+     elementSize(t, elementClass),
      dimensions,
      classObjectMask(t, type(t, Machine::ArrayType)),
      spec,
@@ -4209,7 +4198,7 @@ parseClass(Thread* t, object loader, const uint8_t* data, unsigned size,
   if (isValueType(t, real)) {
     int8_t* name = &byteArrayBody(t, className(t, real), 0);
     uint16_t& classSize = classFixedSize(t, class_);
-    fprintf(stderr, "Class %s is a ValueType with boxed size of %d bytes!\n", name, classSize);
+    fprintf(stderr, "Class %s is a ValueType with classFixedSize of %d bytes!\n", name, classSize);
   }
 
   return real;

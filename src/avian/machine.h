@@ -2838,23 +2838,46 @@ findInterfaceMethod(Thread* t, object method, object class_)
   abort(t);
 }
 
+inline bool
+isValueType(Thread* t, object class_)
+{
+  return (classVmFlags(t, class_) & ValueTypeFlag);
+}
+
+// How much space will an element of this class take, e. g. in an array?
+inline uint8_t
+elementSize(Thread* t, object class_)
+{
+  uint8_t elemSize;
+
+  if (!isValueType(t, class_))
+    elemSize = BytesPerWord;
+  else {
+    elemSize = classFixedSize(t, class_) - BytesPerWord;
+    int8_t* body = &byteArrayBody(t, className(t, class_), 0);
+    fprintf(stderr, "DEBUG: class %s has elementSize %d\n", body, elemSize);
+  }
+  return elemSize;
+}
+
 inline unsigned
 objectArrayLength(Thread* t UNUSED, object array)
 {
   assert(t, classFixedSize(t, objectClass(t, array)) == BytesPerWord * 2);
-  assert(t, classArrayElementSize(t, objectClass(t, array)) == BytesPerWord);
+  assert(t, classArrayElementSize(t, objectClass(t, array)) == elementSize(t, objectClass(t, array))); // == BytesPerWord
   return fieldAtOffset<uintptr_t>(array, BytesPerWord);
 }
 
 inline object&
 objectArrayBody(Thread* t UNUSED, object array, unsigned index)
 {
+  uint8_t elemSize = elementSize(t, objectClass(t, array));
   assert(t, classFixedSize(t, objectClass(t, array)) == BytesPerWord * 2);
-  assert(t, classArrayElementSize(t, objectClass(t, array)) == BytesPerWord);
+  assert(t, classArrayElementSize(t, objectClass(t, array)) == elemSize); // == BytesPerWord
   assert(t, classObjectMask(t, objectClass(t, array))
          == classObjectMask(t, arrayBody
                             (t, t->m->types, Machine::ArrayType)));
-  return fieldAtOffset<object>(array, ArrayBody + (index * BytesPerWord));
+  return fieldAtOffset<object>(array, ArrayBody + (index * elemSize));
 }
 
 unsigned

@@ -2945,13 +2945,16 @@ arrayStore(MyThread* t, object array, int32_t index, object value) {
   // classStaticTable is actually the element type for array classes:
   object arrayClass = objectClass(t, array);
   object elementType = classStaticTable(t, arrayClass);
+  int8_t* name = &byteArrayBody(t, className(t, elementType), 0);
   if (isValueType(t, elementType)) {
+    fprintf(stderr, "DEBUG: Array's element type %s is Value type!\n", name);
     unsigned size = classArrayElementSize(t, arrayClass);
     PROTECT(t, array);
     memcpy(reinterpret_cast<uint8_t*>(array) + ArrayBody + (index * size),
            reinterpret_cast<uint8_t*>(&value) + BytesPerWord,
            size);
   } else {
+    fprintf(stderr, "DEBUG: Array's element type %s is NOT a Value type!\n", name);
     setMaybeNull(t, array, index, value);
   }
 }
