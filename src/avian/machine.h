@@ -2238,7 +2238,7 @@ inline object
 makeString(Thread* t, object data, unsigned offset, unsigned length, unsigned)
 {
   if (offset == 0 and length == charArrayLength(t, data)) {
-    return makeString(t, data, 0, 0);
+    return makeString(t, data, 0);
   } else {
     PROTECT(t, data);
 
@@ -2247,7 +2247,7 @@ makeString(Thread* t, object data, unsigned offset, unsigned length, unsigned)
     memcpy(&charArrayBody(t, array, 0), &charArrayBody(t, data, offset),
            length * 2);
 
-    return makeString(t, array, 0, 0);
+    return makeString(t, array, 0);
   }
 }
 

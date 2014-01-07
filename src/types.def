@@ -180,7 +180,6 @@
 
 (type string java/lang/String
   (alias data object value)
-  (alias length uint32_t count)
   (alias hashCode uint32_t hash))
 
 (type thread java/lang/Thread
