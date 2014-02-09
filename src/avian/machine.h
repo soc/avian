@@ -2367,6 +2367,29 @@ charArrayHash(Thread* t, object array)
   return hash(&charArrayBody(t, array, 0), charArrayLength(t, array));
 }
 
+inline int32_t
+methodParamsLength(Thread* t, object method) {
+  int8_t* spec = &byteArrayBody(t, methodSpec(t, method), 0);
+  int32_t length = 1;
+  while (*spec) {
+    if (*spec == ')') {
+      return length;
+    }
+    ++ spec;
+    ++ length;
+  }
+  abort();
+}
+
+inline uint32_t
+methodParamsHash(Thread* t, object method)
+{
+  // We also include the first char of the return type
+  // so that methods with the same name and parameter,
+  // but different return type get a different hash value.
+  return hash(&byteArrayBody(t, methodSpec(t, method), 0), methodParamsLength(t, method) + 1);
+}
+
 inline bool
 byteArrayEqual(Thread* t, object a, object b)
 {
@@ -2423,7 +2446,8 @@ stringEqual(Thread* t, object a, object b)
 inline uint32_t
 methodHash(Thread* t, object method)
 {
-  return byteArrayHash(t, methodName(t, method));
+  return byteArrayHash(t, methodName(t, method))
+       ^ methodParamsHash(t, method);
 }
 
 inline bool
