@@ -1889,7 +1889,7 @@ addInterfaceMethods(Thread* t, object class_, object virtualMap,
         for (unsigned j = 0; j < arrayLength(t, vtable); ++j) {
           method = arrayBody(t, vtable, j);
           object n = hashMapFindNode
-            (t, virtualMap, method, methodHash, methodEqual);
+            (t, virtualMap, method, methodHash, methodEqualOrCovariantOverride);
           if (n == 0) {
             method = makeMethod
               (t,
@@ -2089,18 +2089,34 @@ parseMethodTable(Thread* t, Stream& s, object class_, object pool)
         ++ declaredVirtualCount;
 
         object p = hashMapFindNode
-          (t, virtualMap, method, methodHash, methodEqual);
+          (t, virtualMap, method, methodHash, methodEqualOrCovariantOverride);
 
         if (p) {
           methodOffset(t, method) = methodOffset(t, tripleFirst(t, p));
 
-          set(t, p, TripleSecond, method);
+          if ((methodFlags(t, method) & ACC_BRIDGE) == 0) {
+            set(t, p, TripleSecond, method);
+
+            fprintf(stdout, "inserting overriding method %s: %s into %s\n",
+                    &byteArrayBody(t, methodName(t, method), 0),
+                    &byteArrayBody(t, methodSpec(t, method), 0),
+                    &byteArrayBody(t, className(t, class_), 0));
+          } else {
+              fprintf(stdout, "ignoring bridge method %s: %s for %s\n",
+                      &byteArrayBody(t, methodName(t, method), 0),
+                      &byteArrayBody(t, methodSpec(t, method), 0),
+                      &byteArrayBody(t, className(t, class_), 0));
+          }
         } else {
           methodOffset(t, method) = virtualCount++;
 
           listAppend(t, newVirtuals, method);
 
           hashMapInsert(t, virtualMap, method, method, methodHash);
+          fprintf(stdout, "inserting new method %s: %s into %s\n",
+                  &byteArrayBody(t, methodName(t, method), 0),
+                  &byteArrayBody(t, methodSpec(t, method), 0),
+                  &byteArrayBody(t, className(t, class_), 0));
         }
 
         if (UNLIKELY((classFlags(t, class_) & ACC_INTERFACE) == 0
@@ -2191,7 +2207,7 @@ parseMethodTable(Thread* t, Stream& s, object class_, object pool)
       if (superVirtualTable) {
         for (; i < arrayLength(t, superVirtualTable); ++i) {
           object method = arrayBody(t, superVirtualTable, i);
-          method = hashMapFind(t, virtualMap, method, methodHash, methodEqual);
+          method = hashMapFind(t, virtualMap, method, methodHash, methodEqualOrCovariantOverride);
 
           set(t, vtable, ArrayBody + (i * BytesPerWord), method);
         }
@@ -2261,7 +2277,7 @@ parseMethodTable(Thread* t, Stream& s, object class_, object pool)
           for (unsigned j = 0; j < arrayLength(t, ivtable); ++j) {
             object method = arrayBody(t, ivtable, j);
             method = hashMapFind
-              (t, virtualMap, method, methodHash, methodEqual);
+              (t, virtualMap, method, methodHash, methodEqualOrCovariantOverride);
             assert(t, method);
               
             set(t, vtable, ArrayBody + (j * BytesPerWord), method);

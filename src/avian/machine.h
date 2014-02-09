@@ -2423,8 +2423,7 @@ stringEqual(Thread* t, object a, object b)
 inline uint32_t
 methodHash(Thread* t, object method)
 {
-  return byteArrayHash(t, methodName(t, method))
-    ^ byteArrayHash(t, methodSpec(t, method));
+  return byteArrayHash(t, methodName(t, method));
 }
 
 inline bool
@@ -2433,6 +2432,32 @@ methodEqual(Thread* t, object a, object b)
   return a == b or
     (byteArrayEqual(t, methodName(t, a), methodName(t, b)) and
      byteArrayEqual(t, methodSpec(t, a), methodSpec(t, b)));
+}
+
+inline bool methodParamsEqual(Thread* t, object a, object b) {
+   int8_t* aSpec = &byteArrayBody(t, methodSpec(t, a), 0);
+   int8_t* bSpec = &byteArrayBody(t, methodSpec(t, b), 0);
+
+   while (*aSpec and *bSpec) {
+     if (*aSpec != *bSpec) {
+       return false;
+     }
+     if (*aSpec == ')') {
+       return true;
+     }
+     ++ aSpec;
+     ++ bSpec;
+   }
+
+   abort(t); // or throw an error
+}
+
+inline bool
+methodEqualOrCovariantOverride(Thread* t, object a, object b)
+{
+  return a == b or
+    (byteArrayEqual(t, methodName(t, a),   methodName(t, b)) and
+     methodParamsEqual(t, a, b)/* and isAssignableFrom(t, a, b)*/);
 }
 
 class MethodSpecIterator {
@@ -2477,6 +2502,10 @@ class MethodSpecIterator {
   bool hasNext() {
     return *s != ')';
   }
+
+//  const char* paramSpec() {
+//    //TODO
+//  }
 
   const char* returnSpec() {
     assert(t, *s == ')');
